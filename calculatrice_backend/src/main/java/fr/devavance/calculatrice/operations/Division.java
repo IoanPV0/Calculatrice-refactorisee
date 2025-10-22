@@ -1,9 +1,11 @@
 package fr.devavance.calculatrice.operations;
 
-/** * Division * 
+/** 
+ * Division * 
  *  @param operande1 : première opérande *
  *  @param operande2 : seconde opérande *
- *  @return division des deux opérances */
+ *  @return division des deux opérandes *
+ */
 public class Division implements Operation {
     public double calcule(double operande1, double operande2) {
         if (operande2 == 0) throw new ArithmeticException("Division par zéro interdite");

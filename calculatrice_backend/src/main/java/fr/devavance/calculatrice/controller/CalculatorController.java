@@ -84,6 +84,7 @@ public class CalculatorController extends HttpServlet {
 // Les switch -> page 97 du cours
 // solution : polymorphisme
 
+        double resultat = 
         if (op.equals("add"))
             r = Calculator.addition(op1, op2);
         else if (op.equals("sub"))
