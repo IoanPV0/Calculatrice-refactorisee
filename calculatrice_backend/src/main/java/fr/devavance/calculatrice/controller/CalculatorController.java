@@ -33,18 +33,14 @@ import java.util.ArrayList;
 public class CalculatorController extends HttpServlet {
 
     private static ArrayList<String> permittedOperators = null;
-
+    private Calculator calculatrice;
 
     @Override
     public void init() throws ServletException {
         super.init();
         this.permittedOperators = new ArrayList<>();
 
-        this.permittedOperators.add("add");
-        this.permittedOperators.add("sub");
-        this.permittedOperators.add("mul");
-        this.permittedOperators.add("div");
-
+        this.calculatrice = new Calculator();
 
     }
 
@@ -64,36 +60,10 @@ public class CalculatorController extends HttpServlet {
             throws ServletException, IOException {
 
 
-        String op = request.getParameter("operation");
-        String operande1 = request.getParameter("operande1");
-        String operande2 = request.getParameter("operande2");
-
-        if (op == null
-                || op.isEmpty()
-                || !this.permittedOperators.contains(op))
-
-            throw new OperatorException();
-
-
-        int op1 = Integer.parseInt(operande1);
-        int op2 = Integer.parseInt(operande2);
-
-
-        double r;
-
-// Les switch -> page 97 du cours
-// solution : polymorphisme
-
-        double resultat = 
-        if (op.equals("add"))
-            r = Calculator.addition(op1, op2);
-        else if (op.equals("sub"))
-            r = Calculator.soustraction(op1, op2);
-        else if (op.equals("div"))
-            r = Calculator.division(op1, op2);
-        else if (op.equals("mul"))
-            r = Calculator.multiplication(op1, op2);
-        else throw new ServletException("Opération invalide !");
+        String operateur = request.getParameter("operation");
+        int operande1 = Integer.parseInt(request.getParameter("operande1"));
+        int operande2 = Integer.parseInt(request.getParameter("operande2"));
+        double resultat = this.calculatrice.calcule(operateur, operande1, operande2);
 
 
         response.setContentType("text/html;charset=UTF-8");
@@ -110,18 +80,16 @@ public class CalculatorController extends HttpServlet {
             out.println("<body>");
 
             out.println("<div>");
-            out.println("<p class=\"operande\">Operande 1 : " + op1 + "</p>");
-            out.println("<p class=\"operande\">Operande 2 : " + op2 + "</p>");
-            out.println("<p class=\"operation\">Operateur : " + op + "</p>");
-            out.println("<p class=\"resultat\">resultat : " + r + "</p>");
+            out.println("<p class=\"operande\">Operande 1 : " + operande1 + "</p>");
+            out.println("<p class=\"operande\">Operande 2 : " + operande2 + "</p>");
+            out.println("<p class=\"operation\">Operateur : " + operateur + "</p>");
+            out.println("<p class=\"resultat\">resultat : " + resultat + "</p>");
             out.println("</div>");
 
             out.println("</body>");
             out.println("</html>");
         } finally {
             out.close();
-
-
         }
 
     }

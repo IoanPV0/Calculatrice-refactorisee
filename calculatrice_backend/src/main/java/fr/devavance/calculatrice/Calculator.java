@@ -21,7 +21,7 @@ public class Calculator {
         this.operations.put("div", new Division());
     }
 
-    public double calculer(String operateur, double op1, double op2)
+    public double calcule(String operateur, double op1, double op2)
     {
         Operation operation = operations.get(operateur);
 
