@@ -1,5 +1,11 @@
 package fr.devavance.calculatrice;
+import fr.devavance.calculatrice.operations.Addition;
+import fr.devavance.calculatrice.operations.Soustraction;
+import fr.devavance.calculatrice.operations.Multiplication;
+import fr.devavance.calculatrice.operations.Division;
+import fr.devavance.calculatrice.operations.Operation;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -15,6 +21,7 @@ public class Calculator {
 
     public Calculator()
     {
+        this.operations = new HashMap<>();
         this.operations.put("add", new Addition());
         this.operations.put("sub", new Soustraction());
         this.operations.put("mul", new Multiplication());
@@ -27,7 +34,7 @@ public class Calculator {
 
         if (operation == null)
         {
-            throw new IllegalArgumentException("Opérateur non reconnu : " + operateur)
+            throw new IllegalArgumentException("Opérateur non reconnu : " + operateur);
         }
         return operation.calcule(op1, op2);
     }
