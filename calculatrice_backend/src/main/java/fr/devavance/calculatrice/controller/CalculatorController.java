@@ -1,97 +1,96 @@
 package fr.devavance.calculatrice.controller;
 
+import fr.devavance.calculatrice.Calculator;
+import fr.devavance.calculatrice.exceptions.OperatorException;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import fr.devavance.calculatrice.Calculator;
-
-
-import fr.devavance.calculatrice.exceptions.OperatorException;
-
-import java.util.ArrayList;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 
-/**
- *
- * @author B. LEMAIRE
- * Controller pour la calculatrice
- * <p>
- * Ce code utilise volontairement des anti-patterns, il n'a pas un
- * bon "good smell"
- * Ce code doit être refactorisé  pour respecter les
- * principes du "good smell code"
- */
-
-
-@WebServlet(urlPatterns = {"/calculate/*"})
+@WebServlet(urlPatterns = {"/calculate", "/calculate/*"})
 public class CalculatorController extends HttpServlet {
 
-    private static ArrayList<String> permittedOperators = null;
+    private static final Set<String> PERMITTED_OPERATORS = new HashSet<>(
+            Arrays.asList("add", "sub", "mul", "div")
+    );
+
     private Calculator calculatrice;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        this.permittedOperators = new ArrayList<>();
-
         this.calculatrice = new Calculator();
-
     }
 
-    //<editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request  servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response)
             throws ServletException, IOException {
 
+        response.setContentType("text/html; charset=UTF-8");
 
         String operateur = request.getParameter("operation");
-        int operande1 = Integer.parseInt(request.getParameter("operande1"));
-        int operande2 = Integer.parseInt(request.getParameter("operande2"));
-        double resultat = this.calculatrice.calcule(operateur, operande1, operande2);
+        String sOp1 = request.getParameter("operande1");
+        String sOp2 = request.getParameter("operande2");
 
-
-        response.setContentType("text/html;charset=UTF-8");
-
-        PrintWriter out = response.getWriter();
-        try {
-
-
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Calculator</title>");
-            out.println("</head>");
-            out.println("<body>");
-
-            out.println("<div>");
-            out.println("<p class=\"operande\">Operande 1 : " + operande1 + "</p>");
-            out.println("<p class=\"operande\">Operande 2 : " + operande2 + "</p>");
-            out.println("<p class=\"operation\">Operateur : " + operateur + "</p>");
-            out.println("<p class=\"resultat\">resultat : " + resultat + "</p>");
-            out.println("</div>");
-
-            out.println("</body>");
-            out.println("</html>");
-        } finally {
-            out.close();
+        if (operateur == null || sOp1 == null || sOp2 == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                    "Paramètres manquants. Usage: ?operation=add|sub|mul|div&operande1=...&operande2=...");
+            return;
         }
 
+        if (!PERMITTED_OPERATORS.contains(operateur)) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                    "Opérateur non autorisé : " + operateur);
+            return;
+        }
+
+        double operande1;
+        double operande2;
+        try {
+            operande1 = Double.parseDouble(sOp1);
+            operande2 = Double.parseDouble(sOp2);
+        } catch (NumberFormatException nfe) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                    "Format numérique invalide pour operande1 ou operande2.");
+            return;
+        }
+
+        try {
+            double resultat = calculatrice.calcule(operateur, operande1, operande2);
+
+            try (PrintWriter out = response.getWriter()) {
+                out.println("<!DOCTYPE html>");
+                out.println("<html>");
+                out.println("<head>");
+                out.println("<meta charset=\"utf-8\"/>");
+                out.println("<title>Calculator</title>");
+                out.println("</head>");
+                out.println("<body>");
+                out.printf("<p>Operande 1 : %s</p>%n", sOp1);
+                out.printf("<p>Operande 2 : %s</p>%n", sOp2);
+                out.printf("<p>Operateur : %s</p>%n", operateur);
+                out.printf("<p>Résultat : %s</p>%n", resultat);
+                out.println("</body>");
+                out.println("</html>");
+            }
+
+        } catch (IllegalArgumentException | OperatorException ex) {
+            // IllegalArgumentException peut être levée par Calculator si opérateur inconnu
+            // OperatorException est laissé pour la compatibilité si tu lances des validations spécifiques
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Erreur lors du calcul : " + ex.getMessage());
+        } catch (Exception ex) {
+            // Erreur serveur inattendue
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erreur serveur.");
+            log("Erreur inattendue dans CalculatorController", ex);
+        }
     }
 }
-     
